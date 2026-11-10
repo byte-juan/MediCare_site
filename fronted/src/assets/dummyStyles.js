@@ -611,10 +611,10 @@ export const navbarStyles = {
   
   // Logo section
   logoLink: "flex items-center gap-3 -ml-3 sm:-ml-4",
-  logoContainer: "relative group w-20 h-20 sm:w-24 sm:h-24 lg:w-15 lg:h-15 xl:w-32 xl:h-32",
+  logoContainer: "relative group flex iteam-center gap-2",
   logoImageWrapper: "relative flex items-center justify-center overflow-hidden p-2 mx-1 h-full w-full",
   logoImage: "w-14 h-14 sm:w-18 sm:h-18 lg:w-15 lg:h-15 xl:w-24 xl:h-24 md:w-20 md:h-20 object-contain",
-  logoTextContainer: "block sm:block",
+  logoTextContainer: "flex flex-col justify-center",
   logoTitle: "text-2xl md:text-2xl lg:text-2xl xl:text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-emerald-600 to-green-600 tracking-tight",
   logoSubtitle: "text-xs lg:text-xs text-gray-500",
   
@@ -640,8 +640,8 @@ export const navbarStyles = {
   toggleIcon: "w-6 h-6 text-gray-900",
   
   // Mobile menu
-  mobileMenu: "mobile-menu lg:hidden pb-4 space-y-2 border-t border-emerald-100 pt-4",
-  mobileMenuItem: "block px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300",
+  mobileMenu: "mobile-menu lg:hidden flex flex-col pb-4 space-y-2 border-t border-emerald-100 pt-4",
+  mobileNavItem: "block w-full px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300",
   mobileMenuItemActive: "bg-emerald-500 text-white",
   mobileMenuItemInactive: "text-gray-700 hover:bg-emerald-50 hover:text-emerald-600",
   
