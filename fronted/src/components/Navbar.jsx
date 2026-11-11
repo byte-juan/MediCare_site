@@ -48,6 +48,8 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
+  {/*Sync the doctor login state*/}
+
   useEffect(() => {
     const onStorage = (e) => {
       if (e.key === STORAGE_KEY) {
@@ -57,6 +59,8 @@ const Navbar = () => {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+
+  {/*close the toggle menu for mobile when click outside */}
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -80,7 +84,8 @@ const Navbar = () => {
   return (
     <>
       <div className={navbarStyles.navbarBorder}></div>
-      <nav className={`${navbarStyles.navbarContainer} ${
+      <nav ref={navRef}
+        className={`${navbarStyles.navbarContainer} ${
         showNavbar ? navbarStyles.navbarVisible : navbarStyles.navbarHidden
       }`}>
         <div className={navbarStyles.contentWrapper}>
