@@ -111,6 +111,9 @@ export async function createDoctor(req, res){
       patients: body.patients || "",
       rating: body.rating !== undefined ? Number(body.rating) : 0,
     });
+
+    await doc.save();
+    const secret = process.env.JWT_SECRET;
     }
 
     catch(error) {
