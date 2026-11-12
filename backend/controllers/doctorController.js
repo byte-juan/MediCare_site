@@ -76,7 +76,7 @@ export async function createDoctor(req, res){
             })
         }
 
-        const emailLC = (body.email || "").toLowerCase():
+        const emailLC = (body.email || "").toLowerCase()
         if(await Doctor .findOne({ email: emailLC})) {
             return res.status(409).json({
                 success: false,
@@ -334,9 +334,75 @@ export async function deleteDoctor(req,res) {
 // to toggle Availability 
 export async function toggleAvailability(req,res) {
   try {
+    const { id } = req.params;
 
+    if (!req.doctor || String(req.doctor._id || req.doctor.id) !== String(id)) {
+      return res.status(403).json({ success: false, message: "Not authorized to update this doctor's avaibility" });
+    }
+
+    const doc = await Doctor.findById(id);
+    if(!doc) return res.status(404).json({
+      success: false,
+      message: "Doctor not found"
+    });
+    if(typeof doc.availability === "boolean") doc.availability = !doc.availability;
+    else doc;availability= doc.availability === "Available" ?
+      "Unavailable" : "Available";
+
+      await doc.save();
+      const out = normalizeDocForClient(doc.toObject());
+      delete out.password;
+      return res.json({ success: true, data: out });
   }
+
   catch(erro) {
+    console.error("toogleAvailability error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
     
+  }
+}
+
+// to login the doctor
+export async function doctorLogin(req, res){
+  try {
+    const {email,password} = req.body || {};
+    if(!email || !password) return res.status(400).json({
+      succes: false,
+      message: "Email and Password are req"
+    });
+
+    const doc = await Doctor.findOne({email: email.toLowerCase()}).select("+password");
+    if(!doc) return res.status(401).json({
+      success: false,
+      message: "Invalid Creds"
+    });
+
+    if(doc.password !== password) return res.status(401).json({
+      success: false,
+      message: "Invalid Creds"
+    });
+
+    const secret = ProcessingInstruction.env .JWT_SECRET;
+    if(!secret) return res.status(500).json({
+      success: false,
+      message: "Server Misconfigured"
+    });
+
+    const token= jwt.sign({
+      id: doc._id.toString(), email: doc.email,
+      role: "doctor"
+  },secret,{ expiresIn: "7d"});
+
+  const out = doc.toObject();
+  delete out.password;
+  return res.json({ succes: true, token, data: out});
+  }
+
+  catch (err) {
+    console.error("Login error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+    
+
+
   }
 }
