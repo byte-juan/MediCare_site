@@ -131,7 +131,7 @@ export async function createDoctor(req, res){
   const out = normalizeDocForClient(doc.toObject());
   delete out.password;
 
-  return rest.status(201).json({
+  return res.status(201).json({
     success: true,
     data: out,
     token

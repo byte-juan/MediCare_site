@@ -3,8 +3,8 @@ import fs from 'fs';
 
 //configuracion cloudinary
 cloudinary.config({
-    cloud_name: procces.env.CLOUDINARY_CLOUD_NAME,
-    api_key: procces.env.CLOUDINARY_API_KEY,
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 
 });
