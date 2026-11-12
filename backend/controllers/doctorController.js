@@ -57,7 +57,7 @@ function normalizeDocForClient(raw = {}) {
   }
 
   doc.availability =
-    doc.availability === undefined ? "Available" : doc.availability;
+    doc.availability === undefined ? "Disponible" : doc.availability;
   doc.patients = doc.patients ?? "";
   doc.rating = doc.rating ?? 0;
   doc.fee = doc.fee ?? doc.fees ?? 0;
@@ -93,7 +93,7 @@ export async function createDoctor(req, res){
         }
 
         const schedule = parseScheduleInput(body.schedule);
-        // createDoctor
+        // Crear Doctor
     const doc = new Doctor({
       email: emailLC,
       password: body.password,
