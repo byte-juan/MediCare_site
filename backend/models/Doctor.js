@@ -9,7 +9,7 @@ const doctorSchema = new mongoose.Schema({
         index: true
     },
 
-    passweord: {
+    password: {
         type: String,
         required: true,
         select: false,

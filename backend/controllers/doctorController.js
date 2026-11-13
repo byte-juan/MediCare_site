@@ -84,34 +84,36 @@ export async function createDoctor(req, res){
             })
         }
 
-        let imgeURL = body.imageUrl || null;
+        let imageUrl = body.imageUrl || null;
         let imagePublicId = body.imagePublicId || null;
+        
         if (req.file?.path) {
             const uploaded = await uploadToCloudinary(req.file.path, "doctors");
-            imageUrl = upleaded?.secure_url || uploaded?.url || imageUrl;
-            imagePublicId = uploaded?.public_id || uploaded?.public_id || imagePublicId;
+            imageUrl = uploaded?.secure_url || uploaded?.url || imageUrl;
+            imagePublicId = uploaded?.public_id || imagePublicId;
         }
 
         const schedule = parseScheduleInput(body.schedule);
+        
         // Crear Doctor
-    const doc = new Doctor({
-      email: emailLC,
-      password: body.password,
-      name: body.name,
-      specialization: body.specialization || "",
-      imageUrl,
-      imagePublicId,
-      availability: body.availability || "Available",
-      experience: body.experience || "",
-      qualifications: body.qualifications || "",
-      location: body.location || "",
-      about: body.about || "",
-      fee: body.fee !== undefined ? Number(body.fee) : 0,
-      schedule,
-      success: body.success || "",
-      patients: body.patients || "",
-      rating: body.rating !== undefined ? Number(body.rating) : 0,
-    });
+        const doc = new Doctor({
+          email: emailLC,
+          password: body.password,
+          name: body.name,
+          specialization: body.specialization || "",
+          imageUrl, // 
+          imagePublicId,
+          availability: body.availability || "Available",
+          experience: body.experience || "",
+          qualifications: body.qualifications || "",
+          location: body.location || "",
+          about: body.about || "",
+          fee: body.fee !== undefined ? Number(body.fee) : 0,
+          schedule,
+          success: body.success || "",
+          patients: body.patients || "",
+          rating: body.rating !== undefined ? Number(body.rating) : 0,
+        });
 
     await doc.save();
     const secret = process.env.JWT_SECRET;
@@ -140,7 +142,7 @@ export async function createDoctor(req, res){
     }
 
     catch(error) {
-      console.error("CreateDoctor error:", err);
+      console.error("CreateDoctor error:", error);
       return res.status(500).json({
         success: false,
         message: "Server error"
@@ -382,7 +384,7 @@ export async function doctorLogin(req, res){
       message: "Invalid Creds"
     });
 
-    const secret = ProcessingInstruction.env .JWT_SECRET;
+    const secret = process.env .JWT_SECRET;
     if(!secret) return res.status(500).json({
       success: false,
       message: "Server Misconfigured"
