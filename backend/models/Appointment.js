@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const appointmentSchema = new mongoose.Schema({
     owner: {type:String, required: true, index: true},
-    createdBy: {Type: String, default: null, index: true},
+    createdBy: {type: String, default: null, index: true},
 
     // informacion del paciente
         patientName: { type: String, required: true, trim: true },
@@ -63,5 +63,5 @@ const appointmentSchema = new mongoose.Schema({
     timestamps: true
 });
 
-const Appointment = mongoose.models.Appointment || mongoose>model("Appointment", appointmentSchema);
+const Appointment = mongoose.models.Appointment || mongoose.model("Appointment", appointmentSchema);
 export default Appointment;

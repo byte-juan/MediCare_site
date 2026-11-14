@@ -515,7 +515,7 @@ export const getStats = async (req, res) => {
 export const getAppointmentsByDoctor = async (req,res) => {
     try {
         const{doctorId} = req.params;
-        if(!doctorId) return res, status(400).json({
+        if(!doctorId) return res.status(400).json({
             success: false,
             message: "Doctor Id es requerido"
         });
