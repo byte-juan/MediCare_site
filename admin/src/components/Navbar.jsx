@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect,useCallback,useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import { navbarStyles as ns } from '../assets/dummyStyles';
 import logoImg from '../assets/logo.png';
 import { useNavigate, useLocation, Link, NavLink } from 'react-router-dom';
@@ -10,7 +10,8 @@ import {
   Grid, 
   PlusSquare, 
   List, 
-  Menu
+  Menu,
+  X
 } from 'lucide-react';
 import { useAuth, useClerk, useUser } from "@clerk/clerk-react";
 
@@ -22,12 +23,12 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   /// clerk
-const clerk = useClerk();
-const { getToken, isLoaded: authLoaded } = useAuth();
-const { isSignedIn, user, isLoaded: userLoaded } = useUser();
+  const clerk = useClerk();
+  const { getToken, isLoaded: authLoaded } = useAuth();
+  const { isSignedIn, user, isLoaded: userLoaded } = useUser();
 
-//INDICADOR ACTIVO DESLIZANTE
- const moveIndicator = useCallback(() => {
+  // INDICADOR ACTIVO DESLIZANTE
+  const moveIndicator = useCallback(() => {
     const container = navInnerRef.current;
     const ind = indicatorRef.current;
     if (!container || !ind) return;
@@ -49,7 +50,6 @@ const { isSignedIn, user, isLoaded: userLoaded } = useUser();
     ind.style.opacity = "1";
   }, []);
 
-  // se movera en 0.12 segundos
   useLayoutEffect(() => {
     moveIndicator();
     const t = setTimeout(() => {
@@ -58,7 +58,6 @@ const { isSignedIn, user, isLoaded: userLoaded } = useUser();
     return () => clearTimeout(t);
   }, [location.pathname, moveIndicator]);
 
-  // Ayuda a desplazar en el eje x
   useEffect(() => {
     const container = navInnerRef.current;
     if (!container) return;
@@ -75,7 +74,6 @@ const { isSignedIn, user, isLoaded: userLoaded } = useUser();
     if (container.parentElement) ro.observe(container.parentElement);
 
     window.addEventListener("resize", moveIndicator);
-
     moveIndicator();
 
     return () => {
@@ -85,7 +83,6 @@ const { isSignedIn, user, isLoaded: userLoaded } = useUser();
     };
   }, [moveIndicator]);
 
-  //alternara el menu móvil, es decir, se cerrara cuando hagamos clic en Escape
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape" && open) setOpen(false);
@@ -94,69 +91,65 @@ const { isSignedIn, user, isLoaded: userLoaded } = useUser();
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
   
-  // Cuando un usuario inicie sesion, se obtiene un TOKEN y se guarda en el LOCALSTORAGE
   useEffect(() => {
     let mounted = true;
-    const storeToken = async() => {
-      if(!authLoaded || !userLoaded) return;
-      if(!isSignedIn) {
+    const storeToken = async () => {
+      if (!authLoaded || !userLoaded) return;
+      if (!isSignedIn) {
         try {
-          localStorage.removeItem("clerk_token")
+          localStorage.removeItem("clerk_token");
         } catch (error) {
-          // ignorar cualquier error
+          // ignorar
         }
         return;
       }
 
-      try  {
+      try {
         const token = await getToken();
-        if(token) {
+        if (token) {
           try {
             localStorage.setItem("clerk_token", token);
-
           } catch (e) {
-            
+            // ignorar
           }
         }
       } catch (err) {
-        console.warn("No se puede recuperar el Clerk Token", err)
+        console.warn("No se puede recuperar el Clerk Token", err);
       }
-    }
+    };
     storeToken();
     return () => {
       mounted = false;
     };
   }, [isSignedIn, authLoaded, userLoaded, getToken]);
 
-  // para abrir el menu de login Clerk
-  const handleOpenSingIn = () => {
-    if(!clerk || !clerk.openSignIn) {
+  const handleOpenSignIn = () => {
+    if (!clerk || !clerk.openSignIn) {
       console.warn("Clerk no esta disponible");
       return;
     }  
     clerk.openSignIn();
-    navigate("/h");
+    navigate("/");
   };
 
-  // para Cerrar Session
-  const handleSingOut = async () => {
-      if(!clerk || !clerk.signOut) {
+  // Nombre estandarizado para evitar errores
+  const handleSignOut = async () => {
+    if (!clerk || !clerk.signOut) {
       console.warn("Clerk no esta disponible");
       return;
     }
-    try{
+    try {
       await clerk.signOut();
     } catch (err) {
-      console.error("Fallo de cierre de session", err);
+      console.error("Fallo de cierre de sesion", err);
     } finally {
       try {
-      localStorage.removeItem("clerk_token");
+        localStorage.removeItem("clerk_token");
+      } catch (e) {
+        // ignorar
+      }
+      navigate("/");
     }
-    catch(e) {
-      // ignorar
-    }
-    navigate("/");
-  }
   };
 
   return (
@@ -182,7 +175,7 @@ const { isSignedIn, user, isLoaded: userLoaded } = useUser();
                   className={ns.centerNavScrollContainer}
                   style={{ WebkitOverflowScrolling: "touch" }}
                 >
-                  <CenterNavItem to="/" label="Dashboard" icon={<Home size={16} />} />
+                  <CenterNavItem to="/h" label="Dashboard" icon={<Home size={16} />} />
                   <CenterNavItem to="/add" label="Add Doctor" icon={<UserPlus size={16} />} />
                   <CenterNavItem to="/list" label="List Doctors" icon={<Users size={16} />} />
                   <CenterNavItem to="/appointments" label="Appointments" icon={<Calendar size={16} />} />
@@ -197,25 +190,24 @@ const { isSignedIn, user, isLoaded: userLoaded } = useUser();
 
           {/* right side */}
           <div className={ns.rightContainer}>
-            {/* auth */}
-              {isSignedIn ? (
-                <button onClick={handleSignOut} className={ns.signOutButton + " " + ns.cursorPointer}>
-                  Cerrar Sesion
-                </button>
-              ) : (
-                <div className=' hidden lg:flex items-center gap-2'>
-                  <button onClick={handleOpenSingIn}
-                  className={ns.loginButton + " " + ns.cursorPointer}
-                  >
-                    Login
-                  </button>
-                </div>
-              )}
-
-              {/* mobile vista */}
-              <button onClick={() => setOpen((v) => !v)} className={ns.mobileMenuButton}>
-                {open ? <x size={18}/> : <Menu size={18} />}
+            {isSignedIn ? (
+              <button onClick={handleSignOut} className={ns.signOutButton + " " + ns.cursorPointer}>
+                Cerrar Sesion
               </button>
+            ) : (
+              <div className='hidden lg:flex items-center gap-2'>
+                <button onClick={handleOpenSignIn}
+                  className={ns.loginButton + " " + ns.cursorPointer}
+                >
+                  Login
+                </button>
+              </div>
+            )}
+
+            {/* mobile vista */}
+            <button onClick={() => setOpen((v) => !v)} className={ns.mobileMenuButton}>
+              {open ? <X size={18}/> : <Menu size={18} />}
+            </button>
           </div>
         </div>
 
@@ -226,75 +218,32 @@ const { isSignedIn, user, isLoaded: userLoaded } = useUser();
         {open && (
           <div className={ns.mobileMenuContainer} id='mobile-menu'>
             <div className={ns.mobileMenuInner}>
-
-               <MobileItem
-                to="/h"
-                label="Dashboard"
-                icon={<Home size={16} />}
-                onClick={() => setOpen(false)}
-              />
-
-              <MobileItem
-                to="/add"
-                label="Add Doctor"
-                icon={<UserPlus size={16} />}
-                onClick={() => setOpen(false)}
-              />
-              <MobileItem
-                to="/list"
-                label="List Doctors"
-                icon={<Users size={16} />}
-                onClick={() => setOpen(false)}
-              />
-              <MobileItem
-                to="/appointments"
-                label="Appointments"
-                icon={<Calendar size={16} />}
-                onClick={() => setOpen(false)}
-              />
-
-              <MobileItem
-                to="/service-dashboard"
-                label="Service Dashboard"
-                icon={<Grid size={16} />}
-                onClick={() => setOpen(false)}
-              />
-              <MobileItem
-                to="/add-service"
-                label="Add Service"
-                icon={<PlusSquare size={16} />}
-                onClick={() => setOpen(false)}
-              />
-              <MobileItem
-                to="/list-service"
-                label="List Services"
-                icon={<List size={16} />}
-                onClick={() => setOpen(false)}
-              />
-              <MobileItem
-                to="/service-appointments"
-                label="Service Appointments"
-                icon={<Calendar size={16} />}
-                onClick={() => setOpen(false)}
-              />
+              <MobileItem to="/" label="Dashboard" icon={<Home size={16} />} onClick={() => setOpen(false)} />
+              <MobileItem to="/add" label="Add Doctor" icon={<UserPlus size={16} />} onClick={() => setOpen(false)} />
+              <MobileItem to="/list" label="List Doctors" icon={<Users size={16} />} onClick={() => setOpen(false)} />
+              <MobileItem to="/appointments" label="Appointments" icon={<Calendar size={16} />} onClick={() => setOpen(false)} />
+              <MobileItem to="/service-dashboard" label="Service Dashboard" icon={<Grid size={16} />} onClick={() => setOpen(false)} />
+              <MobileItem to="/add-service" label="Add Service" icon={<PlusSquare size={16} />} onClick={() => setOpen(false)} />
+              <MobileItem to="/list-service" label="List Services" icon={<List size={16} />} onClick={() => setOpen(false)} />
+              <MobileItem to="/service-appointments" label="Service Appointments" icon={<Calendar size={16} />} onClick={() => setOpen(false)} />
 
               <div className={ns.mobileAuthContainer}>
                 {isSignedIn ? (
                   <button onClick={() => {
-                    handleSingOut();
+                    handleSignOut();
                     setOpen(false);
                   }} className={ns.mobileSignOutButton}>
-                      Cerrar Session
+                    Cerrar Sesion
                   </button>
                 ) : (
-                  <div className=" space -y-2">
+                  <div className="space-y-2">
                     <button onClick={() => {
-                      handleOpenSingIn();
+                      handleOpenSignIn();
                       setOpen(false);
                     }} className={ns.mobileLoginButton + " " + ns.cursorPointer}>
                       Login
                     </button>
-                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -324,15 +273,15 @@ function CenterNavItem({ to, icon, label }) {
   );
 }
 
-function MobileItem ({to, icon, label, onClick}) {
+function MobileItem({ to, icon, label, onClick }) {
   return (
-    <NavLink to={to} onClick={onClick} className={({isActive}) =>
-    `${ns.mobileItemBase} ${
-      isActive ? ns.mobileItemActive : ns.mobileItemInactive
-    }`}
+    <NavLink to={to} onClick={onClick} className={({ isActive }) =>
+      `${ns.mobileItemBase} ${
+        isActive ? ns.mobileItemActive : ns.mobileItemInactive
+      }`}
     >
       {icon}
-      <span className='font-medium text -sm'>{label}</span>
+      <span className='font-medium text-sm'>{label}</span>
     </NavLink> 
-  )
+  );
 }
