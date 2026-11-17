@@ -176,13 +176,13 @@ const Navbar = () => {
                   style={{ WebkitOverflowScrolling: "touch" }}
                 >
                   <CenterNavItem to="/h" label="Dashboard" icon={<Home size={16} />} />
-                  <CenterNavItem to="/add" label="Add Doctor" icon={<UserPlus size={16} />} />
-                  <CenterNavItem to="/list" label="List Doctors" icon={<Users size={16} />} />
-                  <CenterNavItem to="/appointments" label="Appointments" icon={<Calendar size={16} />} />
-                  <CenterNavItem to="/service-dashboard" label="Service Dashboard" icon={<Grid size={16} />} />
-                  <CenterNavItem to="/add-service" label="Add Service" icon={<PlusSquare size={16} />} />
-                  <CenterNavItem to="/list-service" label="List Services" icon={<List size={16} />} />
-                  <CenterNavItem to="/service-appointments" label="Service Appointments" icon={<Calendar size={16} />} />
+                  <CenterNavItem to="/add" label="Agregar Doctor" icon={<UserPlus size={16} />} />
+                  <CenterNavItem to="/list" label="Listar Doctores" icon={<Users size={16} />} />
+                  <CenterNavItem to="/appointments" label="Citas" icon={<Calendar size={16} />} />
+                  <CenterNavItem to="/service-dashboard" label="Servicio Dashboard" icon={<Grid size={16} />} />
+                  <CenterNavItem to="/add-service" label="Agregar Servicio" icon={<PlusSquare size={16} />} />
+                  <CenterNavItem to="/list-service" label="Listar Servicios" icon={<List size={16} />} />
+                  <CenterNavItem to="/service-appointments" label="Servicio de Citas" icon={<Calendar size={16} />} />
                 </div>
               </div>
             </div>
