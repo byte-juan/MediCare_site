@@ -8,7 +8,8 @@ import Add from "./pages/Add";
 import List from "./pages/List";
 import Home from "./pages/Home";
 import Appointments from "./pages/Appointments";
-
+import SerDashboard from "./pages/SerDashboard";
+import AddSer from "./pages/AddSer";
 
 function RequireAuth({ children }) {
   const { isLoaded, isSignedIn } = useUser();
@@ -72,13 +73,28 @@ const App = () => {
         }
       />
       <Route
-      path="/appointments"
+        path="/appointments"
+        element={
+          <RequireAuth>
+            <Appointments />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/service-dashboard"
+        element={
+          <RequireAuth>
+            <SerDashboard />
+          </RequireAuth>
+        }
+      />
+      <Route path="/add-service"
       element={
         <RequireAuth>
-          <Appointments />
+          <AddSer />
         </RequireAuth>
       }
-  />
+      />
     </Routes>
   );
 };
