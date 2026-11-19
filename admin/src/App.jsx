@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import Appointments from "./pages/Appointments";
 import SerDashboard from "./pages/SerDashboard";
 import AddSer from "./pages/AddSer";
+import ListService from "./pages/ListService";
 
 function RequireAuth({ children }) {
   const { isLoaded, isSignedIn } = useUser();
@@ -95,6 +96,14 @@ const App = () => {
         </RequireAuth>
       }
       />
+      <Route path="/list-service"
+      element={
+        <RequireAuth>
+          <ListService />
+        </RequireAuth>
+      }>
+
+      </Route>
     </Routes>
   );
 };
