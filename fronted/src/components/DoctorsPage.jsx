@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { doctorsPageStyles } from "../assets/dummyStyles";
 import {
   Search,
   X,
-  Link,
   Medal,
   ChevronRight,
   MousePointer2Off,
@@ -11,83 +11,91 @@ import {
   CircleChevronDown,
 } from "lucide-react";
 
-const DoctorsPage = () => {
-  const API_BASE = "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
 
+function normalizeDoctor(d) {
+  const id = d._id || d.id;
+  const image = d.imageUrl || d.image || d.imageSmall || d.imageSrc || "";
+
+  let available = true;
+  if (typeof d.availability === "string") {
+    available = d.availability.trim().toLowerCase() === "available";
+  } else if (typeof d.available === "boolean") {
+    available = d.available;
+  } else if (typeof d.availability === "boolean") {
+    available = d.availability;
+  } else {
+    available = d.availability === "Available" || d.available === true;
+  }
+
+  return {
+    id,
+    name: d.name || "Desconocido",
+    specialization: d.specialization || "",
+    image,
+    experience:
+      d.experience !== undefined && d.experience !== null && d.experience !== ""
+        ? String(d.experience)
+        : "—",
+    fee: d.fee ?? d.price ?? 0,
+    available,
+    raw: d,
+  };
+}
+
+const DoctorsPage = () => {
   const [allDoctors, setAllDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showAll, setShowAll] = useState(false);
 
-  //cargar doctores del server
-  useEffect(() => {
-    let mounted = true;
-    async function load() {
-      setLoading(true);
-      setError("");
-      try {
-        const res = await fetch(`${API_BASE}/api/doctors`);
-        const json = await res.json().catch(() => null);
+  const loadDoctors = useCallback(async (isMountedRef = { current: true }) => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_BASE}/api/doctors`);
+      const json = await res.json().catch(() => null);
 
-        if (!res.ok) {
-          const msg =
-            (json && json.message) || `Failed to load doctors (${res.status})`;
-          if (mounted) {
-            setError(msg);
-            setAllDoctors([]);
-            setLoading(false);
-          }
-          return;
-        }
-
-        const items = (json && (json.data || json)) || [];
-        const normalized = (Array.isArray(items) ? items : []).map((d) => {
-          const id = d._id || d.id;
-          const image =
-            d.imageUrl || d.image || d.imageSmall || d.imageSrc || "";
-          let available = true;
-          if (typeof d.availability === "string") {
-            available = d.availability.toLowerCase() === "available";
-          } else if (typeof d.available === "boolean") {
-            available = d.available;
-          } else if (typeof d.availability === "boolean") {
-            available = d.availability;
-          } else {
-            available = d.availability === "Available" || d.available === true;
-          }
-          return {
-            id,
-            name: d.name || "Unknown",
-            specialization: d.specialization || "",
-            image,
-            experience:
-              (d.experience ?? d.experience === 0) ? String(d.experience) : "—",
-            fee: d.fee ?? d.price ?? 0,
-            available,
-            raw: d,
-          };
-        });
-
-        if (mounted) {
-          setAllDoctors(normalized);
-          setError("");
-        }
-      } catch (err) {
-        console.error("load doctors error:", err);
-        if (mounted) {
-          setError("Network error while loading doctors.");
+      if (!res.ok) {
+        const msg =
+          (json && json.message) || `Error al cargar doctores (${res.status})`;
+        if (isMountedRef.current) {
+          setError(msg);
           setAllDoctors([]);
         }
-      } finally {
-        if (mounted) setLoading(false);
+        return;
+      }
+
+      const items = (json && (json.data || json)) || [];
+      const normalized = (Array.isArray(items) ? items : []).map(
+        normalizeDoctor,
+      );
+
+      if (isMountedRef.current) {
+        setAllDoctors(normalized);
+        setError("");
+      }
+    } catch (err) {
+      console.error("load doctors error:", err);
+      if (isMountedRef.current) {
+        setError("Error de red al cargar los doctores.");
+        setAllDoctors([]);
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setLoading(false);
       }
     }
-    load();
+  }, []);
+
+  useEffect(() => {
+    const mountedRef = { current: true };
+    loadDoctors(mountedRef);
     return () => {
-      mounted = false;
+      mountedRef.current = false;
     };
-  }, [API_BASE]);
+  }, [loadDoctors]);
 
   const filteredDoctors = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -103,51 +111,6 @@ const DoctorsPage = () => {
     ? filteredDoctors
     : filteredDoctors.slice(0, 8);
 
-  const retry = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`${API_BASE}/api/doctors`);
-      const json = await res.json().catch(() => null);
-      if (!res.ok) {
-        setError((json && json.message) || `Failed to load (${res.status})`);
-        setAllDoctors([]);
-        return;
-      }
-      const items = (json && (json.data || json)) || [];
-      const normalized = (Array.isArray(items) ? items : []).map((d) => {
-        const id = d._id || d.id;
-        const image = d.imageUrl || d.image || "";
-        let available = true;
-        if (typeof d.availability === "string") {
-          available = d.availability.toLowerCase() === "available";
-        } else if (typeof d.available === "boolean") {
-          available = d.available;
-        } else {
-          available = d.availability === "Available" || d.available === true;
-        }
-        return {
-          id,
-          name: d.name || "Unknown",
-          specialization: d.specialization || "",
-          image,
-          experience: d.experience ?? "—",
-          fee: d.fee ?? d.price ?? 0,
-          available,
-          raw: d,
-        };
-      });
-      setAllDoctors(normalized);
-      setError("");
-    } catch (e) {
-      console.error(e);
-      setError("Network error while loading doctors.");
-      setAllDoctors([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className={doctorsPageStyles.mainContainer}>
       <div className={doctorsPageStyles.backgroundShape1}></div>
@@ -156,17 +119,18 @@ const DoctorsPage = () => {
       <div className={doctorsPageStyles.wrapper}>
         <div className={doctorsPageStyles.headerContainer}>
           <h1 className={doctorsPageStyles.headerTitle}>
-            Nuestros Expertos Medicos
+            Nuestros Expertos Médicos
           </h1>
           <p className={doctorsPageStyles.headerSubtitle}>
-            Encuentra a tu medico ideal por nombre o especilizacion
+            Encuentra a tu médico ideal por nombre o especialización
           </p>
         </div>
+
         <div className={doctorsPageStyles.searchContainer}>
           <div className={doctorsPageStyles.searchWrapper}>
             <input
               type="text"
-              placeholder="Busca doctores por nombre o especializacion..."
+              placeholder="Busca doctores por nombre o especialización..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={doctorsPageStyles.searchInput}
@@ -175,8 +139,10 @@ const DoctorsPage = () => {
             <Search className={doctorsPageStyles.searchIcon} />
             {searchTerm.length > 0 && (
               <button
+                type="button"
                 onClick={() => setSearchTerm("")}
                 className={doctorsPageStyles.clearButton}
+                aria-label="Limpiar búsqueda"
               >
                 <X size={20} strokeWidth={2.5} />
               </button>
@@ -188,14 +154,18 @@ const DoctorsPage = () => {
           <div className={doctorsPageStyles.errorContainer}>
             <div className={doctorsPageStyles.errorText}>{error}</div>
             <div className="flex items-center justify-center gap-3">
-              <button onClick={retry} className={doctorsPageStyles.retryButton}>
-                intentar
+              <button
+                type="button"
+                onClick={() => loadDoctors()}
+                className={doctorsPageStyles.retryButton}
+              >
+                Reintentar
               </button>
             </div>
           </div>
         )}
 
-        {/* loading */}
+        {/* Loading */}
         {loading ? (
           <div className={doctorsPageStyles.skeletonGrid}>
             {Array.from({ length: 8 }).map((_, i) => (
@@ -272,13 +242,13 @@ const DoctorsPage = () => {
 
                   <div className={doctorsPageStyles.experienceBadge}>
                     <Medal className={doctorsPageStyles.experienceIcon} />
-                    <span>{doctor.experience || "-"} Experiencia</span>
+                    <span>{doctor.experience || "—"} Experiencia</span>
                   </div>
 
                   {doctor.available ? (
                     <Link
                       to={`/doctors/${doctor.id}`}
-                      state={{doctor: doctor.raw || doctor}}
+                      state={{ doctor: doctor.raw || doctor }}
                       className={doctorsPageStyles.bookButton}
                     >
                       <ChevronRight
@@ -288,6 +258,7 @@ const DoctorsPage = () => {
                     </Link>
                   ) : (
                     <button
+                      type="button"
                       disabled
                       className={doctorsPageStyles.notAvailableButton}
                     >
@@ -301,8 +272,8 @@ const DoctorsPage = () => {
               ))
             ) : (
               <div className={doctorsPageStyles.noResults}>
-                No se encontraron medicos que coincidadn con sus criterios de
-                busqueda
+                No se encontraron médicos que coincidan con sus criterios de
+                búsqueda
               </div>
             )}
           </div>
@@ -311,6 +282,7 @@ const DoctorsPage = () => {
         {filteredDoctors.length > 8 && (
           <div className={doctorsPageStyles.showMoreContainer}>
             <button
+              type="button"
               onClick={() => setShowAll(!showAll)}
               className={doctorsPageStyles.showMoreButton}
             >
@@ -324,13 +296,14 @@ const DoctorsPage = () => {
                   <CircleChevronDown
                     className={doctorsPageStyles.showMoreIcon}
                   />
-                  Mostrar Mas
+                  Mostrar Más
                 </>
               )}
             </button>
           </div>
         )}
       </div>
+
       {/* Animations */}
       <style>{`
         @keyframes fade-in {
