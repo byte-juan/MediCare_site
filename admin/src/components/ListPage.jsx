@@ -379,12 +379,12 @@ const ListPage = () => {
                 {isOpen && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     <div className={doctorListStyles.aboutSection}>
-                      <h4 className={doctorListStyles.aboutHeading}>About</h4>
+                      <h4 className={doctorListStyles.aboutHeading}>Descripcion</h4>
                       <p className={doctorListStyles.aboutText}>{doc.about}</p>
 
                       <div className="mt-4">
                         <div className={doctorListStyles.qualificationsHeading}>
-                          Qualifications
+                          Estudios
                         </div>
                         <div className={doctorListStyles.qualificationsText}>
                           {doc.qualifications}
@@ -393,7 +393,7 @@ const ListPage = () => {
 
                       <div className="mt-4">
                         <div className={doctorListStyles.scheduleHeading}>
-                          Schedule
+                          Cronograma
                         </div>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {sortedDates.map((date) => {
@@ -423,21 +423,21 @@ const ListPage = () => {
                     {/* expandir informacion */}
                     <aside className={doctorListStyles.statsSidebar}>
                       <div className={doctorListStyles.statsItemHeading}>
-                        Success
+                        Exito
                       </div>
                       <div className={doctorListStyles.statsItemValue}>
                         {doc.success}%
                       </div>
 
                       <div className={doctorListStyles.statsItemHeading}>
-                        Patients
+                        Pacientes
                       </div>
                       <div className={doctorListStyles.statsItemValue}>
                         {doc.patients}
                       </div>
 
                       <div className={doctorListStyles.statsItemHeading}>
-                        Location
+                        Ubicacion
                       </div>
                       <div className={doctorListStyles.locationValue}>
                         {doc.location}

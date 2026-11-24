@@ -112,7 +112,7 @@ export async function getServices(req,res) {
         const list = await service.find().sort({ createAt: -1}).lean();
         return res.status(200).json({
             success: true,
-            date: list
+            data: list
         });
     }
         catch (err) {

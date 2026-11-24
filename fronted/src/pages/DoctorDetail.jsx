@@ -216,7 +216,7 @@ export default function DoctorDetail() {
 
     // Mobile must be exactly 10 digits
     const mobileDigits = (formData.mobile || "").replace(/\D/g, "");
-    if (mobileDigits.length !== 10) {
+    if (mobileDigits.length !== 9) {
       toast.error("Mobile number must be exactly 10 digits.", {
         position: "top-center",
         autoClose: 2500,
@@ -730,7 +730,7 @@ export default function DoctorDetail() {
                         Tarifa de Consulta:
                       </span>
                       <span className={doctorDetailStyles.feeDisplay}>
-                        ₹{fee}
+                        S/{fee}
                       </span>
                     </div>
                   </div>

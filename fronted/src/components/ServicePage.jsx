@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { ChevronsRight, MousePointer2Off } from "lucide-react";
 import { servicePageStyles, serviceCardStyles } from "../assets/dummyStyles";
-import { ChevronsRight, Link, MousePointer2Off } from "lucide-react";
 
 const PlaceholderImg = "/placeholder-service.jpg";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
 
 const ServiceCard = ({ service }) => {
   const hasSrcSet =
@@ -18,8 +20,13 @@ const ServiceCard = ({ service }) => {
         } 768w, ${service.imageLarge || src} 1200w`
       : null);
 
-  const name = service.name || "Service";
+  const name = service.name || "Servicio";
   const shortDescription = service.shortDescription || service.about || "";
+
+  const handleImgError = (e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = PlaceholderImg;
+  };
 
   return (
     <div className={serviceCardStyles.card}>
@@ -29,35 +36,16 @@ const ServiceCard = ({ service }) => {
             {service.imageWebp && (
               <source srcSet={service.imageWebp} type="image/webp" />
             )}
-            {service.imageSrcSet ? (
-              <img
-                src={src || PlaceholderImg}
-                srcSet={service.imageSrcSet}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                alt={name}
-                loading="lazy"
-                decoding="async"
-                className={serviceCardStyles.responsiveImage}
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = PlaceholderImg;
-                }}
-              />
-            ) : (
-              <img
-                src={src || PlaceholderImg}
-                srcSet={srcSet || undefined}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                alt={name}
-                loading="lazy"
-                decoding="async"
-                className={serviceCardStyles.responsiveImage}
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = PlaceholderImg;
-                }}
-              />
-            )}
+            <img
+              src={src || PlaceholderImg}
+              srcSet={service.imageSrcSet || srcSet || undefined}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              alt={name}
+              loading="lazy"
+              decoding="async"
+              className={serviceCardStyles.responsiveImage}
+              onError={handleImgError}
+            />
           </picture>
         ) : (
           <img
@@ -66,16 +54,18 @@ const ServiceCard = ({ service }) => {
             loading="lazy"
             decoding="async"
             className={serviceCardStyles.fallbackImage}
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = PlaceholderImg;
-            }}
+            onError={handleImgError}
           />
         )}
       </div>
 
       <div className={serviceCardStyles.content}>
         <h3 className={serviceCardStyles.serviceName}>{name}</h3>
+        {shortDescription && (
+          <p className={serviceCardStyles.shortDescription || ""}>
+            {shortDescription}
+          </p>
+        )}
 
         <div className={serviceCardStyles.buttonContainer}>
           {service.available ? (
@@ -83,19 +73,20 @@ const ServiceCard = ({ service }) => {
               to={`/services/${service.id}`}
               state={{ service: service.raw || service }}
               className={serviceCardStyles.buttonAvailable}
-              aria-label={`Book ${name}`}
+              aria-label={`Reservar ${name}`}
             >
               <ChevronsRight className="w-5 h-5" aria-hidden="true" />
-              Book Now
+              Reservar ahora
             </Link>
           ) : (
             <button
+              type="button"
               disabled
               className={serviceCardStyles.buttonUnavailable}
-              aria-label={`${name} not available`}
+              aria-label={`${name} no disponible`}
             >
               <MousePointer2Off className="w-5 h-5" aria-hidden="true" />
-              Not Available
+              No disponible
             </button>
           )}
         </div>
@@ -105,12 +96,11 @@ const ServiceCard = ({ service }) => {
 };
 
 const ServicePage = ({ previewCount = 9999 }) => {
-  const API_BASE = "http://localhost:4000";
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function loadServices() {
+  const loadServices = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -119,14 +109,15 @@ const ServicePage = ({ previewCount = 9999 }) => {
 
       if (!res.ok) {
         const msg =
-          (json && json.message) || `Failed to load services (${res.status})`;
+          (json && json.message) ||
+          `Error al cargar los servicios (${res.status})`;
         setError(msg);
         setServices([]);
         setLoading(false);
         return;
       }
 
-      const items = (json && (json.data || json)) || [];
+      const items = (json && (json.data || json.services || json)) || [];
       const normalized = (Array.isArray(items) ? items : []).map((s) => {
         const id = s._id || s.id;
         const image = s.imageUrl || s.image || s.imageSmall || "";
@@ -139,7 +130,7 @@ const ServicePage = ({ previewCount = 9999 }) => {
 
         return {
           id,
-          name: s.name || "Service",
+          name: s.name || "Servicio",
           shortDescription: s.shortDescription || s.about || "",
           image,
           imageSmall: s.imageSmall || null,
@@ -156,16 +147,16 @@ const ServicePage = ({ previewCount = 9999 }) => {
       setServices(normalized);
     } catch (err) {
       console.error("load services error:", err);
-      setError("Network error while loading services.");
+      setError("Error de red al cargar los servicios.");
       setServices([]);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     loadServices();
-  }, [API_BASE]);
+  }, [loadServices]);
 
   const shown = services.slice(0, previewCount);
 
@@ -174,7 +165,7 @@ const ServicePage = ({ previewCount = 9999 }) => {
       <div className={servicePageStyles.maxWidthContainer}>
         <header className={servicePageStyles.header}>
           <h1 className={servicePageStyles.title}>
-            Nuestros Servicios de Diagnostico
+            Nuestros Servicios de Diagnóstico
           </h1>
           <p className={servicePageStyles.subtitle}>
             Pruebas seguras, precisas y fiables.
@@ -185,6 +176,7 @@ const ServicePage = ({ previewCount = 9999 }) => {
           <div className={servicePageStyles.errorContainer}>
             <div className={servicePageStyles.errorText}>{error}</div>
             <button
+              type="button"
               onClick={loadServices}
               className={servicePageStyles.retryButton}
             >
@@ -210,7 +202,7 @@ const ServicePage = ({ previewCount = 9999 }) => {
               shown.map((s) => <ServiceCard key={s.id || s.name} service={s} />)
             ) : (
               <div className={servicePageStyles.emptyState}>
-                No servicios disponibles.
+                No hay servicios disponibles.
               </div>
             )}
           </section>
