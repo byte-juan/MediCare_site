@@ -333,7 +333,7 @@ export const getServiceAppointments = async (req,res) => {
     return res.json({
         success: true,
         appointments,
-        meta: {page, limit, total, count: apppointmets.length}
+        meta: {page, limit, total, count: appointments.length}
     });
 
     } 
