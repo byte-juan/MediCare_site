@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   Clock,
   FileText,
-  IndianRupee,
   Send,
   Phone,
 } from "lucide-react";
@@ -12,13 +11,15 @@ import { useAuth } from "@clerk/clerk-react";
 import toast, { Toaster } from "react-hot-toast";
 import { serviceDetailStyles, iconSize } from "../assets/dummyStyles";
 
-const DEFAULT_HOST = "http://localhost:4000".replace(/\/$/, "");
+const DEFAULT_HOST = (
+  import.meta.env.VITE_API_BASE || "http://localhost:4000"
+).replace(/\/$/, "");
 
 export default function ServiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { isSignedIn, userId, getToken } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -38,7 +39,7 @@ export default function ServiceDetail() {
   const [submitError, setSubmitError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  const isValidMobile = (m) => /^\d{10}$/.test(m);
+  const isValidMobile = (m) => /^\d{9,10}$/.test(m);
 
   const isValidAge = (a) => {
     if (a === "" || a === null || a === undefined) return false;
@@ -48,13 +49,13 @@ export default function ServiceDetail() {
 
   function getClientMissingFields() {
     const missing = [];
-    if (!customerName || !customerName.trim()) missing.push("patientName");
-    if (!mobile || !isValidMobile(mobile)) missing.push("mobile (10 digits)");
-    if (!selectedDate) missing.push("date");
-    if (!selectedTime) missing.push("time");
+    if (!customerName || !customerName.trim()) missing.push("nombre del paciente");
+    if (!mobile || !isValidMobile(mobile)) missing.push("celular (9 dígitos)");
+    if (!selectedDate) missing.push("fecha");
+    if (!selectedTime) missing.push("hora");
 
-    if (!isValidAge(age)) missing.push("age (positive integer)");
-    if (!gender || !String(gender).trim()) missing.push("gender");
+    if (!isValidAge(age)) missing.push("edad (número entero válido)");
+    if (!gender || !String(gender).trim()) missing.push("género");
     return missing;
   }
 
@@ -93,7 +94,7 @@ export default function ServiceDetail() {
           if (!res.ok || !contentType.includes("application/json")) {
             const txt = await res.text().catch(() => "");
             lastError = new Error(
-              `Bad response ${res.status} at ${url}: ${String(txt).slice(
+              `Respuesta inválida ${res.status} en ${url}: ${String(txt).slice(
                 0,
                 200,
               )}`,
@@ -105,7 +106,7 @@ export default function ServiceDetail() {
           const doc = json?.data ?? json?.service ?? json;
 
           if (!doc) {
-            lastError = new Error(`No service data at ${url}`);
+            lastError = new Error(`Sin datos del servicio en ${url}`);
             continue;
           }
 
@@ -132,7 +133,9 @@ export default function ServiceDetail() {
         lastError,
       );
       const local =
-        servicesData && servicesData.find((s) => String(s.id) === String(id));
+        typeof servicesData !== "undefined" &&
+        servicesData &&
+        servicesData.find((s) => String(s.id) === String(id));
       if (local) {
         const cloned = JSON.parse(JSON.stringify(local));
         if (
@@ -159,7 +162,7 @@ export default function ServiceDetail() {
         return;
       }
 
-      setFetchError("Unable to fetch service details from server.");
+      setFetchError("No se pudieron obtener los detalles del servicio desde el servidor.");
       setLoading(false);
     }
 
@@ -172,14 +175,12 @@ export default function ServiceDetail() {
   }, [id]);
 
   function normalizeToDateString(d) {
-    // Convert anything date-like into YYYY-MM-DD string, or return null if invalid
     const dt = new Date(d);
     if (isNaN(dt)) return null;
     return dt.toISOString().split("T")[0];
   }
 
   function sortServiceDates(datesArr) {
-    // Accepts array of mixed date strings / Date objects, returns array of unique YYYY-MM-DD strings
     if (!Array.isArray(datesArr)) return [];
 
     const uniq = Array.from(
@@ -195,16 +196,15 @@ export default function ServiceDetail() {
 
     const past = parsed
       .filter((p) => dateVal(p.date) < todayVal)
-      .sort((a, b) => dateVal(b.date) - dateVal(a.date)); // nearest past first
+      .sort((a, b) => dateVal(b.date) - dateVal(a.date));
 
     const future = parsed
       .filter((p) => dateVal(p.date) >= todayVal)
-      .sort((a, b) => dateVal(a.date) - dateVal(b.date)); // earliest future first (includes today)
+      .sort((a, b) => dateVal(a.date) - dateVal(b.date));
 
     return [...past, ...future].map((p) => p.ds);
   }
 
-  // Replace your transformServiceShape with this updated version:
   function transformServiceShape(doc) {
     const out = {};
     out.id =
@@ -212,7 +212,7 @@ export default function ServiceDetail() {
       doc.id ??
       doc.slug ??
       String(doc.name).replace(/\s+/g, "-").toLowerCase();
-    out.name = doc.name ?? doc.title ?? "Service";
+    out.name = doc.name ?? doc.title ?? "Servicio";
     out.image =
       doc.image || doc.imageUrl || doc.imageURL || doc.image_path || null;
     out.price =
@@ -248,7 +248,6 @@ export default function ServiceDetail() {
       }
     }
 
-    // Ensure dates normalized and ordered: past-first (nearest → older), then today+future (earliest → latest)
     out.dates = sortServiceDates(dates);
     out.slots = slotsMap;
     out.imageAlt = doc.imageAlt ?? doc.alt ?? out.name;
@@ -264,32 +263,29 @@ export default function ServiceDetail() {
     const missing = getClientMissingFields();
     if (missing.length > 0) {
       setSubmitError(
-        `${missing.join(", ")} ${missing.length > 1 ? "are" : "is"} required`,
+        `Falta completar: ${missing.join(", ")}`,
       );
       return;
     }
 
     if (!service) {
-      setSubmitError("Service details not loaded");
+      setSubmitError("No se cargaron los detalles del servicio.");
       return;
     }
 
     if (!isSignedIn) {
-      toast.error("Please sign in to create a booking.");
+      toast.error("Inicia sesión para realizar una reserva.");
       return;
     }
 
     setSubmitting(true);
     try {
-      // get Clerk token (frontend)
       const token = await getToken().catch(() => null);
 
-      // payload (replace the existing payload in ServiceDetail.jsx)
       const payload = {
         serviceId:
           (service?.raw && (service.raw._id || service.raw.id)) || service?.id,
         serviceName: service?.name || "",
-        // NEW: service image snapshot hints (backend will prefer DB but accepts these)
         serviceImageUrl:
           (service?.raw &&
             (service.raw.imageUrl ||
@@ -297,7 +293,6 @@ export default function ServiceDetail() {
               service.raw.imageURL ||
               "")) ||
           service?.image ||
-          "" ||
           "",
         serviceImagePublicId:
           (service?.raw &&
@@ -330,7 +325,7 @@ export default function ServiceDetail() {
         headers.Authorization = `Bearer ${token}`;
       } else {
         toast.error(
-          "Authentication token not available. Please sign in again.",
+          "No se pudo obtener el token de autenticación. Inicia sesión nuevamente.",
         );
         setSubmitting(false);
         return;
@@ -353,7 +348,7 @@ export default function ServiceDetail() {
       if (!res.ok) {
         const msg =
           (json && (json.message || json.error || json.rawText)) ||
-          `Server returned ${res.status}`;
+          `El servidor respondió con estado ${res.status}`;
         if (json && json.errors && typeof json.errors === "object") {
           const ve = Array.isArray(json.errors)
             ? json.errors.join(", ")
@@ -366,7 +361,7 @@ export default function ServiceDetail() {
         return;
       }
 
-      const { appointment, checkoutUrl } = json || {};
+      const { checkoutUrl } = json || {};
 
       if (checkoutUrl) {
         window.location.href = checkoutUrl;
@@ -374,7 +369,7 @@ export default function ServiceDetail() {
       }
 
       toast.success(
-        "Booking created successfully. Redirecting to appointments...",
+        "Reserva creada con éxito. Redirigiendo a tus citas...",
       );
       setTimeout(() => {
         navigate("/appointments?payment_status=Paid", { replace: true });
@@ -389,7 +384,7 @@ export default function ServiceDetail() {
       setEmail("");
     } catch (err) {
       console.error("Booking submit error:", err);
-      setSubmitError("Network error while creating booking.");
+      setSubmitError("Error de red al crear la reserva.");
     } finally {
       setSubmitting(false);
     }
@@ -400,10 +395,10 @@ export default function ServiceDetail() {
       <div className={serviceDetailStyles.loadingContainer}>
         <div className={serviceDetailStyles.loadingCard}>
           <h2 className={serviceDetailStyles.loadingTitle}>
-            Loading service...
+            Cargando Servicio...
           </h2>
           <p className={serviceDetailStyles.loadingText}>
-            Fetching details from server
+            Obteniendo detalles del servidor...
           </p>
         </div>
       </div>
@@ -415,13 +410,13 @@ export default function ServiceDetail() {
       <div className={serviceDetailStyles.loadingContainer}>
         <div className={serviceDetailStyles.loadingCard}>
           <h2 className={serviceDetailStyles.loadingTitle}>
-            Service not found
+            Servicio no encontrado
           </h2>
           <p className={serviceDetailStyles.loadingText}>
-            Please go back and select a valid service.
+            {fetchError || "Vuelve atrás y selecciona un servicio válido."}
           </p>
           <Link to="/services" className={serviceDetailStyles.backToServices}>
-            Back to Services
+            Volver a Servicios
           </Link>
         </div>
       </div>
@@ -435,13 +430,13 @@ export default function ServiceDetail() {
         <div className={serviceDetailStyles.navContainer}>
           <Link to="/services" className={serviceDetailStyles.backButton}>
             <ArrowLeft size={18} />
-            Back
+            Volver
           </Link>
         </div>
       </div>
 
       <div className={serviceDetailStyles.mainGrid}>
-        {/* LEFT */}
+        {/* IZQUIERDA */}
         <div className={serviceDetailStyles.leftColumn}>
           <div className={serviceDetailStyles.imageContainer}>
             <img
@@ -454,14 +449,14 @@ export default function ServiceDetail() {
           <div className={serviceDetailStyles.detailsContainer}>
             <h3 className={serviceDetailStyles.detailsTitle}>
               <Phone size={20} />
-              Your Details
+              Tus Datos
             </h3>
 
             <div className={serviceDetailStyles.detailsGrid}>
               <input
                 required
                 type="text"
-                placeholder="Full Name *"
+                placeholder="Nombre completo *"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 className={serviceDetailStyles.input}
@@ -470,7 +465,7 @@ export default function ServiceDetail() {
               <input
                 type="text"
                 required
-                placeholder="Mobile (10 digits) *"
+                placeholder="Celular (9 dígitos) *"
                 maxLength={10}
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
@@ -484,7 +479,7 @@ export default function ServiceDetail() {
               <input
                 type="number"
                 required
-                placeholder="Age *"
+                placeholder="Edad *"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
                 className={serviceDetailStyles.input}
@@ -496,15 +491,15 @@ export default function ServiceDetail() {
                 onChange={(e) => setGender(e.target.value)}
                 className={serviceDetailStyles.input}
               >
-                <option value="">Select Gender *</option>
-                <option>Male</option>
-                <option>Female</option>
-                <option>Other</option>
+                <option value="">Seleccionar género *</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
+                <option value="Otro">Otro</option>
               </select>
 
               <input
                 type="email"
-                placeholder="Email (optional)"
+                placeholder="Correo electrónico (opcional)"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={serviceDetailStyles.emailInput}
@@ -513,7 +508,7 @@ export default function ServiceDetail() {
 
             <div className={serviceDetailStyles.dateSection}>
               <label className={serviceDetailStyles.paymentLabel}>
-                Payment Method
+                Método de Pago
               </label>
               <div className={serviceDetailStyles.paymentOptions}>
                 <label
@@ -529,7 +524,7 @@ export default function ServiceDetail() {
                     onChange={() => setPaymentMethod("Cash")}
                     className={serviceDetailStyles.paymentInput}
                   />
-                  Cash
+                  Efectivo
                 </label>
                 <label
                   className={serviceDetailStyles.paymentOption(
@@ -544,20 +539,21 @@ export default function ServiceDetail() {
                     onChange={() => setPaymentMethod("Online")}
                     className={serviceDetailStyles.paymentInput}
                   />
-                  Online
+                  En línea
                 </label>
               </div>
             </div>
           </div>
 
-          {/* DATE */}
+          {/* FECHA */}
           <div>
-            <h2 className={serviceDetailStyles.dateTitle}>Select Date *</h2>
+            <h2 className={serviceDetailStyles.dateTitle}>Seleccionar Fecha *</h2>
             <div className={serviceDetailStyles.dateScrollContainer}>
               <div className={serviceDetailStyles.dateButtonsContainer}>
                 {service.dates.map((d) => (
                   <button
                     key={d}
+                    type="button"
                     onClick={() => {
                       setSelectedDate(d);
                       setSelectedTime("");
@@ -573,15 +569,16 @@ export default function ServiceDetail() {
             </div>
           </div>
 
-          {/* TIME */}
+          {/* HORA */}
           {selectedDate && (
             <div className={serviceDetailStyles.timeSection}>
-              <h2 className={serviceDetailStyles.timeTitle}>Select Time *</h2>
+              <h2 className={serviceDetailStyles.timeTitle}>Seleccionar Hora *</h2>
               <div className={serviceDetailStyles.timeScrollContainer}>
                 <div className={serviceDetailStyles.timeButtonsContainer}>
                   {(service.slots[selectedDate] || []).map((t) => (
                     <button
                       key={t}
+                      type="button"
                       onClick={() => setSelectedTime(t)}
                       className={serviceDetailStyles.timeButton(
                         selectedTime === t,
@@ -594,7 +591,7 @@ export default function ServiceDetail() {
                   {(!service.slots[selectedDate] ||
                     service.slots[selectedDate].length === 0) && (
                     <div className={serviceDetailStyles.noSlotsMessage}>
-                      No slots available for this date.
+                      No hay horarios disponibles para esta fecha.
                     </div>
                   )}
                 </div>
@@ -614,6 +611,7 @@ export default function ServiceDetail() {
               </div>
             )}
             <button
+              type="button"
               disabled={!isFormValid() || submitting}
               onClick={handleSubmit}
               className={serviceDetailStyles.submitButton(
@@ -623,35 +621,34 @@ export default function ServiceDetail() {
             >
               <Send />
               {submitting
-                ? "Submitting..."
-                : `Confirm Booking ${
-                    service.price ? `• ₹${service.price}` : ""
+                ? "Enviando..."
+                : `Confirmar Reserva ${
+                    service.price ? `• S/ ${service.price}` : ""
                   }`}
             </button>
           </div>
         </div>
 
-        {/* RIGHT */}
+        {/* DERECHA */}
         <div className={serviceDetailStyles.rightColumn}>
           <h1 className={serviceDetailStyles.serviceName}>{service.name}</h1>
 
           <div className={serviceDetailStyles.aboutContainer}>
             <h2 className={serviceDetailStyles.aboutTitle}>
-              <FileText /> About This Service
+              <FileText /> Acerca de Este Servicio
             </h2>
             <p className={serviceDetailStyles.aboutText}>{service.about}</p>
           </div>
 
           <div className={serviceDetailStyles.priceContainer}>
-            <IndianRupee />
             <span className={serviceDetailStyles.priceText}>
-              {service.price}
+              S/ {service.price}
             </span>
           </div>
 
           <div className={serviceDetailStyles.instructionsContainer}>
             <h3 className={serviceDetailStyles.instructionsTitle}>
-              Pre-Test Instructions
+              Instrucciones Previas al Examen
             </h3>
             <ul className={serviceDetailStyles.instructionsList}>
               {service.instructions.map((i, idx) => (
@@ -662,32 +659,33 @@ export default function ServiceDetail() {
 
           <div className={serviceDetailStyles.summaryContainer}>
             <h3 className={serviceDetailStyles.summaryTitle}>
-              Booking Summary
+              Resumen de Reserva
             </h3>
             <div className={serviceDetailStyles.summaryContent}>
               <p>
-                <b>Name:</b> {customerName || "Not filled"}
+                <b>Nombre:</b> {customerName || "Sin completar"}
               </p>
               <p>
-                <b>Mobile:</b> {mobile || "Not filled"}
+                <b>Celular:</b> {mobile || "Sin completar"}
               </p>
               <p>
-                <b>Age:</b> {age || "Not filled"}
+                <b>Edad:</b> {age || "Sin completar"}
               </p>
               <p>
-                <b>Gender:</b> {gender || "Not filled"}
+                <b>Género:</b> {gender || "Sin completar"}
               </p>
               <p>
-                <b>Date:</b> {selectedDate || "Not selected"}
+                <b>Fecha:</b> {selectedDate || "Sin seleccionar"}
               </p>
               <p>
-                <b>Time:</b> {selectedTime || "Not selected"}
+                <b>Hora:</b> {selectedTime || "Sin seleccionar"}
               </p>
               <p>
-                <b>Payment:</b> {paymentMethod}
+                <b>Pago:</b>{" "}
+                {paymentMethod === "Cash" ? "Efectivo" : "En línea"}
               </p>
               <p>
-                <b>Price:</b> ₹{service.price}
+                <b>Precio:</b> S/ {service.price}
               </p>
             </div>
           </div>

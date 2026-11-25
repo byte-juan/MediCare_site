@@ -241,7 +241,7 @@ export default function DoctorDetail() {
     }
 
     if (!isSignedIn) {
-      toast.error("You must sign in to create an appointment.", {
+      toast.error("Debes iniciar sesion para agendar un cita.", {
         position: "top-center",
         autoClose: 2200,
       });
@@ -612,9 +612,9 @@ export default function DoctorDetail() {
                     <input
                       type="tel"
                       inputMode="numeric"
-                      pattern="\d{10}"
-                      maxLength={10}
-                      placeholder="Numero (10 digits)"
+                      pattern="\d{9}"
+                      maxLength={9}
+                      placeholder="Numero (9 digitos)"
                       className={doctorDetailStyles.formInput}
                       value={formData.mobile}
                       onChange={(e) => handleMobileChange(e.target.value)}
@@ -629,10 +629,10 @@ export default function DoctorDetail() {
                       }
                     >
                       <option value="">Genero</option>
-                      <option value="Masculino">Male</option>
-                      <option value="Femenino">Female</option>
-                      <option value="Otro">Other</option>
-                    </select>
+                      <option value="Masculino">Masculino</option>
+                      <option value="Femenino">Femenino</option>
+                      <option value="Otro">Otro</option>
+                    </select> 
 
                     <input
                       type="email"
@@ -706,13 +706,13 @@ export default function DoctorDetail() {
                       </span>
                       <span className={doctorDetailStyles.summaryValue}>
                         {selectedDate
-                          ? selectedDate.toLocaleDateString("en-US", {
+                          ? selectedDate.toLocaleDateString("en-SE", {
                               weekday: "long",
                               year: "numeric",
                               month: "long",
                               day: "numeric",
                             })
-                          : "Not selected"}
+                          : "No seleccionado"}
                       </span>
                     </div>
 
@@ -721,7 +721,7 @@ export default function DoctorDetail() {
                         Hora Seleccionada:
                       </span>
                       <span className={doctorDetailStyles.summaryValue}>
-                        {selectedSlot || "Not selected"}
+                        {selectedSlot || "No Seleccionado"}
                       </span>
                     </div>
 
