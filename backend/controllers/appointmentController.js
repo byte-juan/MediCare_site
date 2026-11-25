@@ -9,7 +9,7 @@ dotenv.config();
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
 const FRONTED_URL = process.env.FRONTED_URL;
 const MAJOR_ADMIN_ID = process.env.MAJOR_ADMIN_ID || null;
-const stripe = STRIPE_KEY ? new Stripe(STRIPE_KEY, { apiVersion: "2026-10-16."}) : null;
+const stripe = STRIPE_KEY ? new Stripe(STRIPE_KEY) : null;
 
 //AYUDAS
 //esta funcion retorna un numero finito
@@ -20,7 +20,8 @@ const safeNumber = (v) => {
 
 //esta funcion creara la URL del fronted
 const buildFrontendBase = (req) => {
-  if (FRONTEND_URL) return FRONTEND_URL.replace(/\/$/, "");
+  const url = process.env.FRONTEND_URL || req.headers.origin || "http://localhost:5173";
+  return url.replace(/\/$/, "");
   const origin = req.get("origin") || req.get("referer");
   if (origin) return origin.replace(/\/$/, "");
   const host = req.get("host");
@@ -88,10 +89,10 @@ export const getAppointments = async (req,res) => {
 export const  getAppointmentsByPatient = async (req, res) => {
     try {
     const queryCreateBy = req.query.createdBy || null;
-    const clerkUserId = req.auth?.userId || null;
+    const clerkUserId = resolveClerkUserId(req);
     const resolvedCreatedBy =queryCreateBy || clerkUserId || null;
 
-    consle.log('resolvedCreatedBy (query or req.auth.userId):', resolvedCreatedBy);
+    console.log('resolvedCreatedBy (query or req.auth.userId):', resolvedCreatedBy);
 
     if(!resolvedCreatedBy && !req.query.mobile) {
         return res.status(401).json({
@@ -104,7 +105,7 @@ export const  getAppointmentsByPatient = async (req, res) => {
     if(resolvedCreatedBy) filter.createdBy = resolvedCreatedBy;
     if(req.query.mobile) filter.mobile = req.query.mobile;
 
-    const appointments = await Appointment.fin(filter).sort({date: 1, time: 1}).lean();
+    const appointments = await Appointment.find(filter).sort({date: 1, time: 1}).lean();
     return res.json({
         success: true,
         appointments
@@ -271,7 +272,7 @@ export const createAppointment = async (req,res) => {
     let session;
     try {
       session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
+        allowed_payment_method_types: ["card"],
         mode: "payment",
         customer_email: email || undefined,
         line_items: [

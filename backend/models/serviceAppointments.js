@@ -142,6 +142,6 @@ serviceAppointmentSchema.index({ serviceId: 1});
 serviceAppointmentSchema.index({"payment.sessionId": 1});
 
 const ServiceAppointment = mongoose.models.ServiceAppointment ||
-mongoose.model("SerivceAppointment", serviceAppointmentSchema);
+mongoose.model("ServiceAppointment", serviceAppointmentSchema);
 
 export default ServiceAppointment;

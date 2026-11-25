@@ -5,7 +5,7 @@ import { getAuth } from "@clerk/express";
 import Service from "../models/Service.js";
 
 const stripeKey = process.env.STRIPE_SECRET_KEY || null;
-const stripe = stripeKey ? new Stripe(stripeKey, {apiVersion: "2022-11-15."}) : null;
+const stripe = stripeKey ? new Stripe(stripeKey) : null;
 
 //Helper functions
 // esta function retornara un numero finito
@@ -40,8 +40,9 @@ function parseTimeString(timeStr) {
 
 //esta funcion creara la url frontal
 const buildFrontendBase = (req) => {
-  const env = process.env.FRONTEND_URL;
-  if (env) return env.replace(/\/$/, "");
+  const url = process.env.FRONTEND_URL || req.headers.origin || "http://localhost:5173";
+  return url.replace(/\/$/, "");
+
   const origin = req.get("origin") || req.get("referer") || null;
   return origin ? origin.replace(/\/$/, "") : null;
 };
@@ -187,7 +188,7 @@ export const createServiceAppointment = async (req,res) => {
     let session;
     try {
       session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
+        allowed_payment_method_types: ["card"],
         mode: "payment",
         customer_email: email ? String(email) : undefined,
         line_items: [
