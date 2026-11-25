@@ -250,7 +250,7 @@ export async function getDoctorById(req,res){
     return res.json({succes: true, data: normalizeDocForClient(doc)});
   }
   catch (error) {
-    console.error("getDoctorById error:", err);
+    console.error("getDoctorById error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 }
