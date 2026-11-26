@@ -14,7 +14,7 @@ export default async function doctorAuth(req,res, next) {
         })
     }
 
-    const token = authHeader.slipt(" ")[1];
+    const token = authHeader.split(" ")[1];
 
     try{
         // verify token
@@ -42,7 +42,7 @@ export default async function doctorAuth(req,res, next) {
 }
 
     catch (error) {
-        console.error("Doctor JWT Verification failed:", err);
+        console.error("Doctor JWT Verification failed:", error);
         return res.status(401).json({
             success: false,
             message: "Token invalid or missing or expired"

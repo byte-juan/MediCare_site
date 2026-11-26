@@ -535,7 +535,7 @@ export const getAppointmentsByDoctor = async (req,res) => {
     }
 
     const items = await Appointment.find(filter).sort({data: 1, time: 1}).skip(skip).limit(limit)
-    .populate("DoctorId", "name specialization owner imageUrl image").lean();
+    .populate("doctorId", "name specialization owner imageUrl image").lean();
 
     const total = await Appointment.countDocuments(filter);
     return res.json({

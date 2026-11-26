@@ -368,9 +368,11 @@ const ListPage = () => {
     }
   }, [doctorId]);
 
-  useEffect(() => {
-    fetchAppointments();
-  }, [fetchAppointments]);
+useEffect(() => {
+  if (!doctorId) return; // <-- Agrega esta línea (usa el nombre exacto de tu variable)
+  fetchAppointments();
+}, [doctorId, fetchAppointments]);
+
 
   async function updateStatusRemote(id, newStatus) {
     const appt = appointments.find((p) => p.id === id);

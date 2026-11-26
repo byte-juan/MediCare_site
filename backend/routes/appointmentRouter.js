@@ -12,7 +12,7 @@ appointmentRouter.get("/stats/summary", getStats);
 appointmentRouter.post('/', clerkMiddleware(), requireAuth(), createAppointment);
 appointmentRouter.get("/me", clerkMiddleware(), requireAuth(), getAppointmentsByPatient);
 
-appointmentRouter.get("/doctor/:doctoId", getAppointmentsByDoctor);
+appointmentRouter.get("/doctor/:doctorId", getAppointmentsByDoctor);
 
 appointmentRouter.post("/:id/cancel", cancelAppointment);
 appointmentRouter.get('/paitents/count', getRegisterdUserCount);
