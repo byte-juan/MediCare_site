@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import mogoose from "mongoose";
 
 const serviceAppointmentSchema = mongoose.Schema({
-    createBy: {
+    createdBy: {
         type: String,
         default: null,
         index: true

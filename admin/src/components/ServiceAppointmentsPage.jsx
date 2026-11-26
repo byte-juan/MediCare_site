@@ -113,10 +113,10 @@ function StatusSelect({ appointment, onChange, disabled }) {
     appointment.status === "Completed" || appointment.status === "Canceled";
 
   const options = [
-    { value: "Pending", label: "Pending" },
-    { value: "Confirmed", label: "Confirmed" },
-    { value: "Completed", label: "Completed" },
-    { value: "Canceled", label: "Canceled" },
+    { value: "Pending", label: "Pendiente" },
+    { value: "Confirmed", label: "Confirmado" },
+    { value: "Completed", label: "Completado" },
+    { value: "Canceled", label: "Cancelado" },
   ];
 
   return (
@@ -209,7 +209,7 @@ function RescheduleButton({ appointment, onReschedule, disabled }) {
             }
             className={serviceAppointmentsStyles.rescheduleButton(terminal)}
           >
-            Reschedule
+            Reprogramar
           </button>
         </div>
       ) : (
@@ -232,13 +232,13 @@ function RescheduleButton({ appointment, onReschedule, disabled }) {
               onClick={save}
               className={serviceAppointmentsStyles.rescheduleSaveButton}
             >
-              Save
+              Guardar
             </button>
             <button
               onClick={cancel}
               className={serviceAppointmentsStyles.rescheduleCancelButton}
             >
-              Cancel
+              Cancelar
             </button>
           </div>
         </div>
@@ -747,7 +747,7 @@ const ServiceAppointmentsPage = () => {
                             className={serviceAppointmentsStyles.detailIcon}
                           />
                           <span className={serviceAppointmentsStyles.feesText}>
-                            Fees: S/ {a.fees}
+                            Tarifa: S/ {a.fees}
                           </span>
                         </div>
 
@@ -758,7 +758,7 @@ const ServiceAppointmentsPage = () => {
                           <span
                             className={serviceAppointmentsStyles.detailText}
                           >
-                            Date: {formatDateNice(a.date)}
+                            Fecha: {formatDateNice(a.date)}
                           </span>
                         </div>
 
@@ -769,12 +769,12 @@ const ServiceAppointmentsPage = () => {
                           <span
                             className={serviceAppointmentsStyles.detailText}
                           >
-                            Time: {formatTimeDisplay(a)}
+                            Hora: {formatTimeDisplay(a)}
                           </span>
                         </div>
 
                         <div className={serviceAppointmentsStyles.serviceText}>
-                          Service:{" "}
+                          Servicio:{" "}
                           <span
                             className={serviceAppointmentsStyles.serviceName}
                           >

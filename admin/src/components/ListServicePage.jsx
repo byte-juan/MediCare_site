@@ -393,7 +393,7 @@ export default function ListServicePage() {
         return {
           valid: false,
           message:
-            "One or more slots are in the past. Please pick future date/time for all slots.",
+            "Uno o mas slots estan en el pasado . Por ",
         };
       }
     }
@@ -764,7 +764,7 @@ export default function ListServicePage() {
                     </div>
 
                     <div className={s.servicePriceContainer}>
-                      <div className={s.servicePrice}>₹{svc.price}</div>
+                      <div className={s.servicePrice}>S/{svc.price}</div>
                       <div
                         className={`${s.availabilityBadge} ${
                           svc.available
@@ -847,7 +847,7 @@ export default function ListServicePage() {
 
                         <div className={s.availabilitySelectContainer}>
                           <label className={s.availabilityLabel}>
-                            Availability
+                            Disponibilidad
                           </label>
                           <select
                             value={editForm.available ? "true" : "false"}
@@ -859,14 +859,14 @@ export default function ListServicePage() {
                             }
                             className={s.availabilitySelect}
                           >
-                            <option value="true">Available</option>
-                            <option value="false">Unavailable</option>
+                            <option value="true">Disponible</option>
+                            <option value="false">Ocupado</option>
                           </select>
                         </div>
 
                         <div className={s.fileInputContainer}>
                           <label className={s.fileInputLabel}>
-                            Change image
+                            Cambiar Imagen
                           </label>
                           <input
                             ref={fileRef}
@@ -880,7 +880,7 @@ export default function ListServicePage() {
                     </div>
 
                     <div>
-                      <label className={s.formLabel}>About</label>
+                      <label className={s.formLabel}>Info</label>
                       <textarea
                         className={`${s.inputBase} ${s.textarea}`}
                         value={editForm.about}
@@ -892,7 +892,7 @@ export default function ListServicePage() {
 
                     <div>
                       <label className={s.formLabel}>
-                        Instructions (one per line)
+                        Instrucciones
                       </label>
                       <textarea
                         className={`${s.inputBase} ${s.textareaInstructions}`}
@@ -914,7 +914,7 @@ export default function ListServicePage() {
                           type="button"
                           className={`${s.addSlotButton} ${s.cursorPointer}`}
                         >
-                          <Plus className="w-4 h-4" /> Add slot
+                          <Plus className="w-4 h-4" /> Agregar slot
                         </button>
                       </div>
 
@@ -989,7 +989,7 @@ export default function ListServicePage() {
                                 onClick={() => removeSlot(slot.id)}
                                 className={s.removeSlotButton}
                               >
-                                Remove
+                                Remover
                               </button>
                             </div>
                           </div>
@@ -999,22 +999,22 @@ export default function ListServicePage() {
 
                     <div className={s.formActions}>
                       <button onClick={cancelEdit} className={s.cancelButton}>
-                        Cancel
+                        Cancelar
                       </button>
                       <button onClick={saveEdit} className={s.saveButton}>
-                        Save
+                        Guardar
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className={s.viewSection}>
                     <div>
-                      <h3 className={s.viewSectionTitle}>About</h3>
+                      <h3 className={s.viewSectionTitle}>Info</h3>
                       <p className={s.viewSectionContent}>{svc.about}</p>
                     </div>
 
                     <div>
-                      <h3 className={s.viewSectionTitle}>Instructions</h3>
+                      <h3 className={s.viewSectionTitle}>Instrucciones</h3>
                       <ul className={s.instructionsList}>
                         {svc.instructions.map((p, i) => (
                           <li key={i}>{p}</li>
@@ -1053,14 +1053,14 @@ export default function ListServicePage() {
                         className={`${s.editButton} ${s.cursorPointer}`}
                       >
                         <Edit2 className="w-4 h-4 text-emerald-600" />{" "}
-                        <span className={s.textEmerald700}>Edit</span>
+                        <span className={s.textEmerald700}>Editar</span>
                       </button>
 
                       <button
                         onClick={() => removeService(svc.id)}
                         className={`${s.removeButton} ${s.cursorPointer}`}
                       >
-                        <Trash2 className="w-4 h-4" /> Remove
+                        <Trash2 className="w-4 h-4" /> Remover
                       </button>
                     </div>
                   </div>
